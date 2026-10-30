@@ -37,6 +37,7 @@ export default function AdminLoginPage() {
     try {
       const auth = await loginAdmin(email.trim(), password);
       setAuth(auth);
+      await new Promise(resolve => window.requestAnimationFrame(resolve));
       toast.success("Admin access granted");
       navigate("/admin", { replace: true });
     } catch (err) {
@@ -50,7 +51,7 @@ export default function AdminLoginPage() {
     <AuthShell
       accent="amber"
       title="Administrator sign-in"
-      subtitle="Review wellness trends, manage accounts and keep the full audit trail â€” without seeing anyone's personal details."
+      subtitle="Review wellness trends, manage accounts and keep the full audit trail — without seeing anyone personal details."
       footer={
         <Link
           to="/login"
@@ -70,7 +71,7 @@ export default function AdminLoginPage() {
 
         <div className="flex items-start gap-2.5 rounded-2xl border border-amber-500/15 bg-amber-500/[0.05] px-4 py-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
-          Administrator screens show member codes and health numbers only â€” never names,
+          Administrator screens show member codes and health numbers only — never names,
           emails or passwords. Everything you do here is recorded in the audit trail.
         </div>
 
