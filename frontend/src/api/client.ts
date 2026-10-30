@@ -2,7 +2,9 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/stores/authStore";
 import type { AuthResponse } from "@/types";
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
+// Force absolute URL to backend for production builds
+const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_PROXY_TARGET || "/api";
+export const API_BASE_URL = apiBase.replace(/\/$/, "");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +39,6 @@ async function refreshSession(): Promise<AuthResponse> {
   const { refreshToken } = useAuthStore.getState();
   if (!refreshToken) throw new Error("No refresh token");
 
-  // Bare axios: bypasses this interceptor to avoid recursion.
   const { data } = await axios.post<AuthResponse>(
     `${API_BASE_URL}/auth/refresh`,
     { refreshToken },
@@ -122,7 +123,6 @@ export function getErrorMessage(error: unknown, fallback = "Something went wrong
     }
   }
   if (error instanceof Error && error.message) {
-    // Never surface axios plumbing text like "Request failed with status code 502".
     if (/^Request failed with status code \d+$/.test(error.message)) return fallback;
     return error.message;
   }
