@@ -38,7 +38,8 @@ from app.schemas.log import (
     SystemLogStats,
 )
 from app.utils.audit import record_audit
-from app.utils.dates import as_utc, calculate_streak, last_n_dates, today_str, utcnow, random_date_past\nimport random
+from app.utils.dates import as_utc, calculate_streak, last_n_dates, today_str, utcnow, random_date_past
+import random
 from app.utils.logging_store import log_event
 from app.utils.serializers import health_day
 
