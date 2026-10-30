@@ -38,8 +38,7 @@ from app.schemas.log import (
     SystemLogStats,
 )
 from app.utils.audit import record_audit
-from app.utils.dates import as_utc, calculate_streak, last_n_dates, today_str, utcnow, random_date_past
-import random
+from app.utils.dates import as_utc, calculate_streak, last_n_dates, today_str, utcnow
 from app.utils.logging_store import log_event
 from app.utils.serializers import health_day
 
@@ -395,61 +394,6 @@ async def soft_delete_user(anonymized_id: str, admin: CurrentAdmin) -> dict:
         "status": AccountStatus.DELETED.value,
     }
 
-
-# ---------------------------------------------------------------------------
-# Utility / Seeding
-# ---------------------------------------------------------------------------
-@router.post(
-    "/seed-activity",
-    summary="Seed realistic random activity for all users (Developer Only)",
-)
-async def seed_activity(admin: CurrentAdmin) -> dict:
-    \"\"\"Populates the database with 30 days of random health data for all users.\"\"\"
-    all_users = await users.find({"role": UserRole.USER.value}).to_list(length=None)
-    if not all_users:
-        return {"message": "No users found to seed."}
-
-    seeded_count = 0
-    import random
-    from datetime import timedelta
-    from app.utils.dates import today_str, utcnow
-    
-    today = date_cls.today()
-    
-    for user in all_users:
-        anon_id = user["anonymizedId"]
-        # Seed for the last 30 days
-        for i in range(30):
-            date_val = today - timedelta(days=i)
-            date_str = date_val.isoformat()
-            
-            # Randomize health data
-            workout = random.choice([True, False, True]) # 66% chance of workout
-            
-            doc = {
-                "anonymizedId": anon_id,
-                "date": date_str,
-                "waterGlasses": random.randint(4, 12),
-                "screenTimeHours": round(random.uniform(2.0, 8.0), 1),
-                "mostUsedApp": random.choice(["Instagram", "YouTube", "WhatsApp", "Chrome", "TikTok"]),
-                "sleepHours": round(random.uniform(5.0, 9.0), 1),
-                "workoutCompleted": workout,
-                "completedExercises": random.sample(["Push-ups", "Squats", "Plank", "Running", "Walking"], random.randint(1, 3)) if workout else [],
-                "updatedAt": utcnow() - timedelta(days=i, hours=random.randint(0, 23)),
-            }
-            
-            # Upsert data for that date
-            await health_data.update_one(
-                {"anonymizedId": anon_id, "date": date_str},
-                {"$set": doc},
-                upsert=True
-            )
-        seeded_count += 1
-
-    return {
-        "message": f"Successfully seeded 30 days of activity for {seeded_count} users.",
-        "total_entries": seeded_count * 30,
-    }
 
 # ---------------------------------------------------------------------------
 # Audit log
